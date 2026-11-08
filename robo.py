@@ -109,16 +109,24 @@ def _destino(config: dict) -> Dado_de_Contato:
 
 
 def modo_resumo(config: dict, hoje: date) -> int:
-    """Coleta a semana e envia o resumo dos pratos encontrados."""
+    """Coleta a PRÓXIMA semana e envia o resumo dos pratos encontrados.
+
+    Projetado para rodar no sábado: mostra a semana que vai começar (próxima
+    segunda a domingo), para o usuário se planejar. Nunca inclui dias que já
+    passaram — se rodado em outro dia, ainda olha a próxima segunda em diante.
+    """
     restaurante = config.get("restaurante", "RU")
     pratos = _pratos_monitorados(config)
     if not pratos:
         print("Nenhum prato configurado em config.json.")
         return 0
 
-    segunda = hoje - timedelta(days=hoje.weekday())
-    dias = [segunda + timedelta(days=o) for o in range(7)]
-    print(f"[resumo] coletando {dias[0].isoformat()} a {dias[-1].isoformat()} ...")
+    # Próxima segunda-feira (estritamente após hoje): 7 - weekday() dias à
+    # frente. Ex.: sábado (weekday 5) -> +2 dias = segunda; domingo (6) -> +1.
+    dias_ate_proxima_segunda = 7 - hoje.weekday()
+    proxima_segunda = hoje + timedelta(days=dias_ate_proxima_segunda)
+    dias = [proxima_segunda + timedelta(days=o) for o in range(7)]
+    print(f"[resumo] coletando a próxima semana: {dias[0].isoformat()} a {dias[-1].isoformat()} ...")
 
     itens = _coletar_itens(dias)
     if not itens:
@@ -127,14 +135,14 @@ def modo_resumo(config: dict, hoje: date) -> int:
 
     cardapio = Cardapio_Semanal(
         restaurante=restaurante,
-        data_coleta=hoje,
-        semana_ano=hoje.isocalendar().week,
+        data_coleta=proxima_segunda,
+        semana_ano=proxima_segunda.isocalendar().week,
         itens=tuple(itens),
     )
     mapa = detectar(cardapio, pratos)
     tem_ocorrencia = any(lista for lista in mapa.values())
     if not tem_ocorrencia:
-        print("[resumo] nenhum prato monitorado nesta semana; nenhum e-mail enviado.")
+        print("[resumo] nenhum prato monitorado na próxima semana; nenhum e-mail enviado.")
         return 0
 
     notificador = _montar_notificador()
