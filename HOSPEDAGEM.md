@@ -4,9 +4,10 @@ O robô roda nos servidores do GitHub, nos horários certos, **sem depender do
 seu PC ligado**. Siga os passos abaixo uma única vez.
 
 ## Como vai funcionar
-- **Domingo 11h (horário de São Paulo):** envia o resumo da PRÓXIMA semana
-  (segunda a domingo seguintes), se tiver sobrecoxa. Nunca mostra dia passado.
-- **Todo dia 10h (horário de São Paulo):** checa o cardápio do dia e, se tiver
+- **Domingo 7h (horário de São Paulo):** envia o resumo da PRÓXIMA semana
+  (segunda a domingo seguintes). Sempre envia (com ou sem sobrecoxa). Nunca
+  mostra dia passado.
+- **Todo dia 7h (horário de São Paulo):** checa o cardápio do dia e, se tiver
   sobrecoxa, envia o lembrete "Hoje tem...". Só o dia de hoje, nunca passado.
 - **Keepalive (dia 1 de cada mês):** um commit automático mantém o repositório
   ativo para o GitHub não pausar os agendamentos (política de ~60 dias).
@@ -46,10 +47,10 @@ repository secret** e crie:
 opcionais; os padrões do Gmail já funcionam, pode deixar sem criar.)
 
 ## Passo 4 — Testar sem esperar o horário
-Na aba **Actions** do repositório, abra o workflow **"Resumo semanal (sábado)"**
-(roda no domingo) e clique em **Run workflow**. Isso dispara o robô na hora.
+Na aba **Actions** do repositório, abra o workflow **"Resumo semanal (domingo 7h)"**
+e clique em **Run workflow**. Isso dispara o robô na hora.
 Veja o log e confira o e-mail em `l247225@dac.unicamp.br`.
-Faça o mesmo com **"Lembrete diário (10h)"** para testar o outro aviso.
+Faça o mesmo com **"Lembrete diário (7h)"** para testar o outro aviso.
 Observação: ao rodar manualmente, o resumo mostra a PRÓXIMA semana — se ela
 ainda não tiver sobrecoxa, nenhum e-mail é enviado (comportamento correto).
 
@@ -68,9 +69,14 @@ abra o arquivo e clique no lápis), salve/commite, e pronto. Exemplo:
 Para monitorar mais de um prato, adicione na lista: `["sobrecoxa", "feijoada"]`.
 
 ## Observações
-- Os horários nos workflows estão em UTC (o GitHub usa UTC). Já ajustei:
-  sábado 14h UTC = 11h SP; 13h UTC diário = 10h SP. Se o Brasil voltar a ter
-  horário de verão, esses horários precisariam de um ajuste de 1 hora.
+- Os horários nos workflows estão em UTC (o GitHub usa UTC). Já ajustei para
+  7h de São Paulo: resumo domingo 10:17 UTC; lembrete diário 10:23 UTC (minuto
+  quebrado de propósito, pois horários "cheios" atrasam/pulam mais no GitHub).
+  Se o Brasil voltar a ter horário de verão, esses horários precisariam de um
+  ajuste de 1 hora.
+- O GitHub Actions NÃO garante pontualidade de cron: pode atrasar alguns minutos
+  e, em repositórios pouco ativos, às vezes pula uma execução. O keepalive
+  mensal ajuda a manter o agendador ativo.
 - O plano grátis do GitHub Actions é mais que suficiente para 1 execução/dia.
 - A tela web de configuração continua existindo para uso local, mas na nuvem a
   configuração é o `config.json`.

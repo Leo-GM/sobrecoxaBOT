@@ -1,12 +1,13 @@
-name: Lembrete diário (10h)
+name: Lembrete diário (7h)
 
 # Todo dia de manhã checa o cardápio do dia e, se o prato monitorado estiver
 # nele, envia o lembrete "Hoje tem ...".
 # Cron do GitHub Actions roda em UTC. São Paulo = UTC-3.
-# 10:00 em São Paulo = 13:00 UTC.
+# 07:00 em São Paulo = 10:00 UTC.
+# Minuto quebrado (10:23) para fugir do horário cheio, que atrasa/pula mais.
 on:
   schedule:
-    - cron: "0 13 * * *"
+    - cron: "23 10 * * *"
   workflow_dispatch: {}   # permite rodar manualmente pelo botão "Run workflow"
 
 jobs:

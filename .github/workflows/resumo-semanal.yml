@@ -1,12 +1,14 @@
-name: Resumo semanal (sábado)
+name: Resumo semanal (domingo 7h)
 
 # Envia o resumo da PRÓXIMA semana com os pratos monitorados encontrados.
 # Cron do GitHub Actions roda em UTC. São Paulo = UTC-3.
-# Domingo 11:00 em São Paulo = domingo 14:00 UTC.
+# Domingo 07:00 em São Paulo = domingo 10:00 UTC.
+# Usamos minuto quebrado (10:17) de propósito: horários "cheios" (hora redonda)
+# são os mais concorridos no GitHub e os que mais atrasam/pulam.
 # (dia 0 = domingo no cron do GitHub)
 on:
   schedule:
-    - cron: "0 14 * * 0"
+    - cron: "17 10 * * 0"
   workflow_dispatch: {}   # permite rodar manualmente pelo botão "Run workflow"
 
 jobs:
