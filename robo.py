@@ -110,11 +110,28 @@ def _montar_notificador():
     return NotificadorComRetry(canal)
 
 
-def _destino(config: dict) -> Dado_de_Contato:
-    return Dado_de_Contato(
-        canal=Canal_de_Notificacao.EMAIL,
-        valor=str(config["email_destino"]).strip(),
-    )
+def _destinos(config: dict) -> list[Dado_de_Contato]:
+    """Lista de e-mails de destino, suportando um ou vários.
+
+    Aceita dois formatos no ``config.json`` (o novo tem precedência):
+
+    * ``"emails_destino": ["a@x.com", "b@y.com"]`` — lista de e-mails;
+    * ``"email_destino": "a@x.com"`` — um único e-mail (formato antigo,
+      mantido por compatibilidade).
+    """
+    brutos = config.get("emails_destino")
+    if brutos is None:
+        um = config.get("email_destino")
+        brutos = [um] if um else []
+
+    destinos: list[Dado_de_Contato] = []
+    for valor in brutos:
+        email = str(valor).strip()
+        if email:
+            destinos.append(
+                Dado_de_Contato(canal=Canal_de_Notificacao.EMAIL, valor=email)
+            )
+    return destinos
 
 
 def modo_resumo(config: dict, hoje: date) -> int:
@@ -158,19 +175,26 @@ def modo_resumo(config: dict, hoje: date) -> int:
         print("ERRO: credenciais SMTP ausentes (BUSCA_SMTP_USER/PASSWORD).", file=sys.stderr)
         return 1
 
-    destino = _destino(config)
+    destinos = _destinos(config)
+    if not destinos:
+        print("ERRO: nenhum e-mail de destino no config.json.", file=sys.stderr)
+        return 1
 
+    nomes = ", ".join(p.nome_original for p in pratos)
+    todos_ok = True
     # Envia SEMPRE (confirmação semanal): com ocorrências, lista os dias; sem
     # ocorrências, avisa que não terá nenhum prato monitorado na próxima semana.
-    if tem_ocorrencia:
-        resultado = notificador.notificar_ocorrencias(mapa, None, destino)
-    else:
-        nomes = ", ".join(p.nome_original for p in pratos)
-        corpo = _mensagem_resumo_sem_pratos(nomes, dias[0], dias[-1])
-        resultado = notificador.enviar_mensagem(corpo, None, destino)
+    for destino in destinos:
+        if tem_ocorrencia:
+            resultado = notificador.notificar_ocorrencias(mapa, None, destino)
+        else:
+            corpo = _mensagem_resumo_sem_pratos(nomes, dias[0], dias[-1])
+            resultado = notificador.enviar_mensagem(corpo, None, destino)
+        estado = "ENTREGUE" if resultado.entregue else f"FALHOU ({resultado.falhas})"
+        print(f"[resumo] {destino.valor}: {estado}")
+        todos_ok = todos_ok and resultado.entregue
 
-    print("[resumo]", "ENTREGUE" if resultado.entregue else f"FALHOU ({resultado.falhas})")
-    return 0 if resultado.entregue else 1
+    return 0 if todos_ok else 1
 
 
 def _mensagem_resumo_sem_pratos(pratos_nomes: str, inicio: date, fim: date) -> str:
@@ -202,7 +226,7 @@ def modo_lembrete(config: dict, hoje: date) -> int:
     mapa = detectar(cardapio, pratos)
 
     notificador = None
-    destino = _destino(config)
+    destinos = _destinos(config)
     enviados = 0
     for prato, ocorrencias in mapa.items():
         if not ocorrencias:
@@ -220,13 +244,16 @@ def modo_lembrete(config: dict, hoje: date) -> int:
                 print("ERRO: credenciais SMTP ausentes (BUSCA_SMTP_USER/PASSWORD).", file=sys.stderr)
                 return 1
 
-        resultado = notificador.notificar_lembrete_dia(
-            prato.nome_original, periodos, None, destino
-        )
-        print(
-            f"[lembrete] {prato.nome_original} ({', '.join(periodos)}):",
-            "ENTREGUE" if resultado.entregue else f"FALHOU ({resultado.falhas})",
-        )
+        # Um lembrete para cada e-mail de destino.
+        for destino in destinos:
+            resultado = notificador.notificar_lembrete_dia(
+                prato.nome_original, periodos, None, destino
+            )
+            print(
+                f"[lembrete] {destino.valor} — {prato.nome_original} "
+                f"({', '.join(periodos)}):",
+                "ENTREGUE" if resultado.entregue else f"FALHOU ({resultado.falhas})",
+            )
         enviados += 1
 
     if enviados == 0:

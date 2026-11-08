@@ -162,13 +162,26 @@ class NotificadorFalso:
     def __init__(self) -> None:
         self.ocorrencias = []
         self.mensagens = []
+        self.lembretes = []
+        # Destinos (e-mails) para os quais algo foi enviado.
+        self.destinos = []
 
     def notificar_ocorrencias(self, mapa, canal=None, contato=None):
         self.ocorrencias.append(mapa)
+        if contato is not None:
+            self.destinos.append(contato.valor)
         return _ResultadoOk()
 
     def enviar_mensagem(self, mensagem, canal=None, contato=None):
         self.mensagens.append(mensagem)
+        if contato is not None:
+            self.destinos.append(contato.valor)
+        return _ResultadoOk()
+
+    def notificar_lembrete_dia(self, prato_nome, refeicoes, canal=None, contato=None):
+        self.lembretes.append((prato_nome, list(refeicoes)))
+        if contato is not None:
+            self.destinos.append(contato.valor)
         return _ResultadoOk()
 
 
@@ -211,3 +224,63 @@ def test_resumo_com_sobrecoxa_envia_ocorrencias(monkeypatch, config):
     # Enviou as ocorrências (não a mensagem de "nenhum").
     assert len(notif.ocorrencias) == 1
     assert notif.mensagens == []
+
+
+# ---------------------------------------------------------------------------
+# Múltiplos e-mails de destino
+# ---------------------------------------------------------------------------
+def test_resumo_envia_para_varios_emails(monkeypatch):
+    """Com ``emails_destino`` (lista), o resumo envia para todos."""
+    config = {
+        "emails_destino": ["a@exemplo.com", "b@exemplo.com"],
+        "pratos": ["sobrecoxa"],
+        "restaurante": "RU",
+    }
+    hoje = date(2026, 11, 8)
+    cliente = ClienteFalsoPorData({date(2026, 11, 11)})  # tem sobrecoxa
+    monkeypatch.setattr(robo, "ClienteRequests", lambda: cliente)
+    notif = NotificadorFalso()
+    monkeypatch.setattr(robo, "_montar_notificador", lambda: notif)
+
+    codigo = robo.modo_resumo(config, hoje)
+
+    assert codigo == 0
+    # Enviou as ocorrências para os dois e-mails.
+    assert notif.destinos == ["a@exemplo.com", "b@exemplo.com"]
+
+
+def test_lembrete_envia_para_varios_emails(monkeypatch):
+    """Com ``emails_destino`` (lista), o lembrete envia para todos."""
+    config = {
+        "emails_destino": ["a@exemplo.com", "b@exemplo.com"],
+        "pratos": ["sobrecoxa"],
+        "restaurante": "RU",
+    }
+    hoje = date(2026, 11, 11)
+    cliente = ClienteFalsoPorData({hoje})  # tem sobrecoxa hoje
+    monkeypatch.setattr(robo, "ClienteRequests", lambda: cliente)
+    notif = NotificadorFalso()
+    monkeypatch.setattr(robo, "_montar_notificador", lambda: notif)
+
+    codigo = robo.modo_lembrete(config, hoje)
+
+    assert codigo == 0
+    assert set(notif.destinos) == {"a@exemplo.com", "b@exemplo.com"}
+
+
+def test_formato_antigo_email_unico_ainda_funciona(monkeypatch):
+    """Compatibilidade: ``email_destino`` (string única) continua válido."""
+    config = {
+        "email_destino": "unico@exemplo.com",
+        "pratos": ["sobrecoxa"],
+        "restaurante": "RU",
+    }
+    hoje = date(2026, 11, 8)
+    cliente = ClienteFalsoPorData(set())  # sem sobrecoxa -> aviso semanal
+    monkeypatch.setattr(robo, "ClienteRequests", lambda: cliente)
+    notif = NotificadorFalso()
+    monkeypatch.setattr(robo, "_montar_notificador", lambda: notif)
+
+    robo.modo_resumo(config, hoje)
+
+    assert notif.destinos == ["unico@exemplo.com"]

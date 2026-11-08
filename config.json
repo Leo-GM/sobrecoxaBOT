@@ -1,5 +1,8 @@
 {
-  "email_destino": "l247225@dac.unicamp.br",
+  "emails_destino": [
+    "l247225@dac.unicamp.br",
+    "EMAIL_DO_SEU_AMIGO_AQUI"
+  ],
   "pratos": [
     "sobrecoxa"
   ],
