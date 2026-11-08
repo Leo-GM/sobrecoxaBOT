@@ -175,13 +175,7 @@ def modo_resumo(config: dict, hoje: date) -> int:
 
 def _mensagem_resumo_sem_pratos(pratos_nomes: str, inicio: date, fim: date) -> str:
     """Texto do resumo quando nenhum prato monitorado aparece na próxima semana."""
-    return (
-        f"Resumo da semana de {inicio.isoformat()} a {fim.isoformat()}:\n\n"
-        f"Nenhum prato monitorado ({pratos_nomes}) foi encontrado no cardápio "
-        "da próxima semana.\n\n"
-        "Este é o seu aviso semanal — está tudo funcionando. Você será avisado "
-        "no dia caso algum prato apareça."
-    )
+    return "NAAAAAAAAAAAAAAAAAAAO, sobrou nada"
 
 
 def modo_lembrete(config: dict, hoje: date) -> int:

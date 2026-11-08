@@ -129,7 +129,7 @@ def mensagem_ocorrencias(
         )
 
     linhas: list[str] = [
-        "Pratos monitorados encontrados no cardápio desta semana:",
+        "TEM SOBRECOXA CARALHOOOOO",
         "",
     ]
     for prato, lista in pratos_com_ocorrencia:

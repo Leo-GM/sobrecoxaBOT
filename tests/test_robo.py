@@ -193,8 +193,7 @@ def test_resumo_sem_sobrecoxa_envia_aviso_de_confirmacao(monkeypatch, config):
     assert notif.ocorrencias == []
     assert len(notif.mensagens) == 1
     corpo = notif.mensagens[0]
-    assert "Nenhum prato monitorado" in corpo
-    assert "sobrecoxa" in corpo.lower()
+    assert "NAAAAAAAAAAAAAAAAAAAO, sobrou nada" in corpo
 
 
 def test_resumo_com_sobrecoxa_envia_ocorrencias(monkeypatch, config):
