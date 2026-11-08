@@ -1,0 +1,36 @@
+name: Lembrete diário (10h)
+
+# Todo dia de manhã checa o cardápio do dia e, se o prato monitorado estiver
+# nele, envia o lembrete "Hoje tem ...".
+# Cron do GitHub Actions roda em UTC. São Paulo = UTC-3.
+# 10:00 em São Paulo = 13:00 UTC.
+on:
+  schedule:
+    - cron: "0 13 * * *"
+  workflow_dispatch: {}   # permite rodar manualmente pelo botão "Run workflow"
+
+jobs:
+  lembrete:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Baixar o código
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Instalar dependências
+        run: pip install -e .
+
+      - name: Enviar lembrete do dia
+        env:
+          PYTHONPATH: .
+          TZ: America/Sao_Paulo
+          BUSCA_SMTP_USER: ${{ secrets.BUSCA_SMTP_USER }}
+          BUSCA_SMTP_PASSWORD: ${{ secrets.BUSCA_SMTP_PASSWORD }}
+          BUSCA_SMTP_HOST: ${{ secrets.BUSCA_SMTP_HOST }}
+          BUSCA_SMTP_PORT: ${{ secrets.BUSCA_SMTP_PORT }}
+          BUSCA_SMTP_FROM: ${{ secrets.BUSCA_SMTP_FROM }}
+        run: python robo.py lembrete

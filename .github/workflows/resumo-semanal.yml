@@ -1,0 +1,35 @@
+name: Resumo semanal (sábado)
+
+# Envia o resumo da semana com os pratos monitorados encontrados.
+# Cron do GitHub Actions roda em UTC. São Paulo = UTC-3.
+# Sábado 11:00 em São Paulo = sábado 14:00 UTC.
+on:
+  schedule:
+    - cron: "0 14 * * 6"
+  workflow_dispatch: {}   # permite rodar manualmente pelo botão "Run workflow"
+
+jobs:
+  resumo:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Baixar o código
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Instalar dependências
+        run: pip install -e .
+
+      - name: Enviar resumo da semana
+        env:
+          PYTHONPATH: .
+          TZ: America/Sao_Paulo
+          BUSCA_SMTP_USER: ${{ secrets.BUSCA_SMTP_USER }}
+          BUSCA_SMTP_PASSWORD: ${{ secrets.BUSCA_SMTP_PASSWORD }}
+          BUSCA_SMTP_HOST: ${{ secrets.BUSCA_SMTP_HOST }}
+          BUSCA_SMTP_PORT: ${{ secrets.BUSCA_SMTP_PORT }}
+          BUSCA_SMTP_FROM: ${{ secrets.BUSCA_SMTP_FROM }}
+        run: python robo.py resumo

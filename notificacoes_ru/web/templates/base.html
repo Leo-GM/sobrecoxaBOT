@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block titulo %}Marimbondos Informes RU{% endblock %}</title>
+    <style>
+        :root {
+            --cor-fundo: #f6f7f9;
+            --cor-card: #ffffff;
+            --cor-borda: #d9dde3;
+            --cor-texto: #1f2933;
+            --cor-primaria: #2f855a;
+            --cor-erro-fundo: #fde8e8;
+            --cor-erro-texto: #9b1c1c;
+            --cor-sucesso-fundo: #e6f4ea;
+            --cor-sucesso-texto: #1e6b3a;
+            --cor-aviso-fundo: #fef3c7;
+            --cor-aviso-texto: #92400e;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: var(--cor-fundo);
+            color: var(--cor-texto);
+            line-height: 1.5;
+        }
+
+        header {
+            background: var(--cor-primaria);
+            color: #fff;
+            padding: 1rem 1.25rem;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 1.25rem;
+        }
+
+        main {
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 1.25rem;
+        }
+
+        .card {
+            background: var(--cor-card);
+            border: 1px solid var(--cor-borda);
+            border-radius: 10px;
+            padding: 1rem 1.25rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .card h2 {
+            margin-top: 0;
+            font-size: 1.05rem;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin: 0.5rem 0 0.25rem;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid var(--cor-borda);
+            border-radius: 6px;
+            font-size: 1rem;
+        }
+
+        .linha {
+            display: flex;
+            gap: 0.5rem;
+            align-items: flex-end;
+            flex-wrap: wrap;
+        }
+
+        .linha>* {
+            flex: 1;
+            min-width: 120px;
+        }
+
+        button {
+            background: var(--cor-primaria);
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            padding: 0.55rem 0.9rem;
+            font-size: 0.95rem;
+            cursor: pointer;
+        }
+
+        button.secundario {
+            background: #4b5563;
+        }
+
+        button.perigo {
+            background: #b91c1c;
+        }
+
+        ul.lista {
+            list-style: none;
+            padding: 0;
+            margin: 0.5rem 0 0;
+        }
+
+        ul.lista li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.45rem 0;
+            border-bottom: 1px solid var(--cor-borda);
+        }
+
+        ul.lista li:last-child {
+            border-bottom: none;
+        }
+
+        .mensagem {
+            padding: 0.65rem 0.85rem;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+        }
+
+        .mensagem.sucesso {
+            background: var(--cor-sucesso-fundo);
+            color: var(--cor-sucesso-texto);
+        }
+
+        .mensagem.erro {
+            background: var(--cor-erro-fundo);
+            color: var(--cor-erro-texto);
+        }
+
+        .aviso {
+            background: var(--cor-aviso-fundo);
+            color: var(--cor-aviso-texto);
+            padding: 0.65rem 0.85rem;
+            border-radius: 6px;
+        }
+
+        .vazio {
+            color: #6b7280;
+            font-style: italic;
+        }
+
+        .mascara {
+            font-family: monospace;
+            letter-spacing: 2px;
+        }
+
+        form.inline {
+            display: inline;
+            margin: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>Marimbondos Informes RU</h1>
+        <nav style="margin-top: 0.35rem; font-size: 0.9rem;">
+            <a href="/configuracao" style="color: #fff;">Configuração</a>
+        </nav>
+    </header>
+    <main>
+        {% block conteudo %}{% endblock %}
+    </main>
+</body>
+
+</html>

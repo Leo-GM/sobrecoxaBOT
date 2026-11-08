@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block titulo %}Configuração · Marimbondos Informes RU{% endblock %}
+
+{% block conteudo %}
+{% if mensagem %}
+<div class="mensagem {{ mensagem_tipo or 'sucesso' }}">{{ mensagem }}</div>
+{% endif %}
+
+{# --- Pratos monitorados (Req 2) ------------------------------------- #}
+<section class="card">
+    <h2>Pratos monitorados</h2>
+    <p>Cadastre os pratos que você quer procurar no cardápio (1 a 50 pratos).</p>
+
+    <form action="/configuracao/pratos" method="post" class="linha">
+        <div>
+            <label for="nome">Nome do prato</label>
+            <input type="text" id="nome" name="nome" maxlength="100" placeholder="ex.: sobrecoxa de frango"
+                autocomplete="off">
+        </div>
+        <div style="flex: 0 0 auto;">
+            <button type="submit">Adicionar</button>
+        </div>
+    </form>
+
+    {% if pratos %}
+    <ul class="lista">
+        {% for prato in pratos %}
+        <li>
+            <span>{{ prato.nome_original }}</span>
+            <form action="/configuracao/pratos/remover" method="post" class="inline">
+                <input type="hidden" name="nome_normalizado" value="{{ prato.nome_normalizado }}">
+                <button type="submit" class="perigo">Remover</button>
+            </form>
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p class="vazio">Nenhum prato monitorado cadastrado ainda.</p>
+    {% endif %}
+</section>
+
+{# --- E-mail de notificação (Req 4.3, 4.8, 4.9) --------------------- #}
+<section class="card">
+    <h2>E-mail de notificação</h2>
+    <p>As notificações são enviadas por e-mail. Informe o endereço que vai
+        receber os avisos.</p>
+
+    {% if not canal_valido %}
+    <p class="aviso">
+        Cadastre um e-mail válido para ativar o monitoramento.
+    </p>
+    {% endif %}
+
+    <form action="/configuracao/canal" method="post">
+        <input type="hidden" name="canal" value="e-mail">
+
+        <label for="contato">E-mail</label>
+        <input type="email" id="contato" name="contato" value="{{ contato_atual }}" placeholder="voce@exemplo.com"
+            autocomplete="off">
+
+        <div style="margin-top: 0.75rem;">
+            <button type="submit">Salvar e-mail</button>
+        </div>
+    </form>
+</section>
+
+{# --- Horário de coleta (Req 1.7) ----------------------------------- #}
+<section class="card">
+    <h2>Horário de coleta</h2>
+    <p>A coleta roda semanalmente ({{ horario.dia_semana }}, fuso {{ horario.fuso }}).</p>
+
+    <form action="/configuracao/horario" method="post" class="linha">
+        <div>
+            <label for="hora">Hora</label>
+            <input type="number" id="hora" name="hora" min="0" max="23" value="{{ horario.hora }}">
+        </div>
+        <div>
+            <label for="minuto">Minuto</label>
+            <input type="number" id="minuto" name="minuto" min="0" max="59" value="{{ horario.minuto }}">
+        </div>
+        <div style="flex: 0 0 auto;">
+            <button type="submit">Salvar horário</button>
+        </div>
+    </form>
+</section>
+
+{% endblock %}

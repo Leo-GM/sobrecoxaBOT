@@ -1,0 +1,17 @@
+# Credenciais e segredos — NUNCA versionar
+.env
+notificacoes_ru.key
+
+# Banco de dados local
+notificacoes_ru.db
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.hypothesis/
+
+# Configs locais de editor/IDE
+.vscode/
+.kiro/
