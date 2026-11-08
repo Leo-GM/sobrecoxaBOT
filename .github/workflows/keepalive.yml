@@ -1,0 +1,28 @@
+name: Keepalive (manter workflows ativos)
+
+# O GitHub desativa workflows agendados (cron) após ~60 dias sem atividade no
+# repositório. Este workflow roda 1x por mês e faz um commit VAZIO, mantendo o
+# repositório ativo para que os crons de resumo e lembrete nunca sejam pausados.
+# Dia 1 de cada mês, 12:00 UTC (09:00 em São Paulo).
+on:
+  schedule:
+    - cron: "0 12 1 * *"
+  workflow_dispatch: {}
+
+# Permite ao job fazer push de volta no repositório.
+permissions:
+  contents: write
+
+jobs:
+  keepalive:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Baixar o código
+        uses: actions/checkout@v4
+
+      - name: Commit vazio para manter o repositório ativo
+        run: |
+          git config user.name "keepalive-bot"
+          git config user.email "keepalive@users.noreply.github.com"
+          git commit --allow-empty -m "keepalive: mantem os workflows agendados ativos"
+          git push

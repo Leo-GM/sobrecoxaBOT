@@ -4,10 +4,12 @@ O robô roda nos servidores do GitHub, nos horários certos, **sem depender do
 seu PC ligado**. Siga os passos abaixo uma única vez.
 
 ## Como vai funcionar
-- **Sábado 11h (horário de São Paulo):** coleta a semana e, se tiver sobrecoxa,
-  envia o e-mail de resumo.
+- **Domingo 11h (horário de São Paulo):** envia o resumo da PRÓXIMA semana
+  (segunda a domingo seguintes), se tiver sobrecoxa. Nunca mostra dia passado.
 - **Todo dia 10h (horário de São Paulo):** checa o cardápio do dia e, se tiver
-  sobrecoxa, envia o lembrete "Hoje tem...".
+  sobrecoxa, envia o lembrete "Hoje tem...". Só o dia de hoje, nunca passado.
+- **Keepalive (dia 1 de cada mês):** um commit automático mantém o repositório
+  ativo para o GitHub não pausar os agendamentos (política de ~60 dias).
 - O prato e o e-mail ficam no arquivo `config.json`. A senha do Gmail fica
   guardada como "Secret" no GitHub (nunca no código).
 
@@ -45,9 +47,11 @@ opcionais; os padrões do Gmail já funcionam, pode deixar sem criar.)
 
 ## Passo 4 — Testar sem esperar o horário
 Na aba **Actions** do repositório, abra o workflow **"Resumo semanal (sábado)"**
-e clique em **Run workflow** (botão à direita). Isso dispara o robô na hora.
+(roda no domingo) e clique em **Run workflow**. Isso dispara o robô na hora.
 Veja o log e confira o e-mail em `l247225@dac.unicamp.br`.
 Faça o mesmo com **"Lembrete diário (10h)"** para testar o outro aviso.
+Observação: ao rodar manualmente, o resumo mostra a PRÓXIMA semana — se ela
+ainda não tiver sobrecoxa, nenhum e-mail é enviado (comportamento correto).
 
 ## Mudar o prato ou o e-mail depois
 Edite o arquivo `config.json` (no GitHub dá para editar pelo próprio site:

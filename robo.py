@@ -72,11 +72,20 @@ def _pratos_monitorados(config: dict) -> list[Prato_Monitorado]:
     return pratos
 
 
-def _coletar_itens(datas: list[date]):
-    """Coleta e parseia o cardápio de cada data informada (offline-safe)."""
+def _coletar_itens(datas: list[date], nao_antes: date | None = None):
+    """Coleta e parseia o cardápio de cada data informada (offline-safe).
+
+    Se ``nao_antes`` for informado, datas estritamente anteriores a ele são
+    IGNORADAS — garantia de que nenhum dia que já passou entra no resultado
+    (nem no resumo nem no lembrete).
+    """
     cliente = ClienteRequests()
     itens = []
     for d in datas:
+        if nao_antes is not None and d < nao_antes:
+            # Dia no passado: nunca coletamos nem notificamos (requisito do
+            # usuário — jamais avisar sobre um dia que já passou).
+            continue
         separador = "&" if "?" in URL_PADRAO else "?"
         url = f"{URL_PADRAO}{separador}d={d.isoformat()}"
         try:
@@ -111,9 +120,10 @@ def _destino(config: dict) -> Dado_de_Contato:
 def modo_resumo(config: dict, hoje: date) -> int:
     """Coleta a PRÓXIMA semana e envia o resumo dos pratos encontrados.
 
-    Projetado para rodar no sábado: mostra a semana que vai começar (próxima
+    Projetado para rodar no domingo: mostra a semana que vai começar (próxima
     segunda a domingo), para o usuário se planejar. Nunca inclui dias que já
-    passaram — se rodado em outro dia, ainda olha a próxima segunda em diante.
+    passaram — se rodado em outro dia, ainda olha a próxima segunda em diante,
+    e o filtro ``nao_antes=hoje`` garante que nenhum dia passado é coletado.
     """
     restaurante = config.get("restaurante", "RU")
     pratos = _pratos_monitorados(config)
@@ -128,7 +138,8 @@ def modo_resumo(config: dict, hoje: date) -> int:
     dias = [proxima_segunda + timedelta(days=o) for o in range(7)]
     print(f"[resumo] coletando a próxima semana: {dias[0].isoformat()} a {dias[-1].isoformat()} ...")
 
-    itens = _coletar_itens(dias)
+    # nao_antes=hoje: blindagem extra contra qualquer dia passado no resumo.
+    itens = _coletar_itens(dias, nao_antes=hoje)
     if not itens:
         print("[resumo] fonte indisponível ou sem itens; nada a enviar.")
         return 0
@@ -165,7 +176,8 @@ def modo_lembrete(config: dict, hoje: date) -> int:
         return 0
 
     print(f"[lembrete] coletando o dia {hoje.isoformat()} ...")
-    itens = _coletar_itens([hoje])
+    # nao_antes=hoje: o lembrete é só do próprio dia, nunca de dia passado.
+    itens = _coletar_itens([hoje], nao_antes=hoje)
     if not itens:
         print("[lembrete] fonte indisponível ou sem itens hoje; nada a enviar.")
         return 0
