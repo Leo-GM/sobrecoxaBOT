@@ -152,9 +152,6 @@ def modo_resumo(config: dict, hoje: date) -> int:
     )
     mapa = detectar(cardapio, pratos)
     tem_ocorrencia = any(lista for lista in mapa.values())
-    if not tem_ocorrencia:
-        print("[resumo] nenhum prato monitorado na próxima semana; nenhum e-mail enviado.")
-        return 0
 
     notificador = _montar_notificador()
     if notificador is None:
@@ -162,9 +159,29 @@ def modo_resumo(config: dict, hoje: date) -> int:
         return 1
 
     destino = _destino(config)
-    resultado = notificador.notificar_ocorrencias(mapa, None, destino)
+
+    # Envia SEMPRE (confirmação semanal): com ocorrências, lista os dias; sem
+    # ocorrências, avisa que não terá nenhum prato monitorado na próxima semana.
+    if tem_ocorrencia:
+        resultado = notificador.notificar_ocorrencias(mapa, None, destino)
+    else:
+        nomes = ", ".join(p.nome_original for p in pratos)
+        corpo = _mensagem_resumo_sem_pratos(nomes, dias[0], dias[-1])
+        resultado = notificador.enviar_mensagem(corpo, None, destino)
+
     print("[resumo]", "ENTREGUE" if resultado.entregue else f"FALHOU ({resultado.falhas})")
     return 0 if resultado.entregue else 1
+
+
+def _mensagem_resumo_sem_pratos(pratos_nomes: str, inicio: date, fim: date) -> str:
+    """Texto do resumo quando nenhum prato monitorado aparece na próxima semana."""
+    return (
+        f"Resumo da semana de {inicio.isoformat()} a {fim.isoformat()}:\n\n"
+        f"Nenhum prato monitorado ({pratos_nomes}) foi encontrado no cardápio "
+        "da próxima semana.\n\n"
+        "Este é o seu aviso semanal — está tudo funcionando. Você será avisado "
+        "no dia caso algum prato apareça."
+    )
 
 
 def modo_lembrete(config: dict, hoje: date) -> int:

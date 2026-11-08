@@ -205,6 +205,20 @@ class NotificadorComRetry:
         texto = mensagem_lembrete_dia(prato_nome, refeicoes)
         return self._enviar_com_retry(texto, contato)
 
+    def enviar_mensagem(
+        self,
+        mensagem: str,
+        canal: object = None,
+        contato: Dado_de_Contato | None = None,
+    ) -> ResultadoNotificacao:
+        """Envia uma mensagem de texto já pronta, com a mesma política de retry.
+
+        Útil para avisos cujo corpo é montado pelo chamador (ex.: o resumo
+        semanal de confirmação "nenhum prato na próxima semana"). Aplica a mesma
+        validação de contato e política de retry dos demais envios.
+        """
+        return self._enviar_com_retry(mensagem, contato)
+
     # ------------------------------------------------------------------
     # Núcleo do retry
     # ------------------------------------------------------------------

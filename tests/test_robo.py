@@ -151,3 +151,64 @@ def test_lembrete_dia_sem_prato_nao_requisita_passado(monkeypatch, config):
 
     assert cliente.datas_requisitadas == [hoje]
     assert all(d >= hoje for d in cliente.datas_requisitadas)
+
+
+# ---------------------------------------------------------------------------
+# Resumo envia SEMPRE (confirmação semanal, mesmo sem sobrecoxa)
+# ---------------------------------------------------------------------------
+class NotificadorFalso:
+    """Captura as chamadas de notificação em vez de enviar e-mail real."""
+
+    def __init__(self) -> None:
+        self.ocorrencias = []
+        self.mensagens = []
+
+    def notificar_ocorrencias(self, mapa, canal=None, contato=None):
+        self.ocorrencias.append(mapa)
+        return _ResultadoOk()
+
+    def enviar_mensagem(self, mensagem, canal=None, contato=None):
+        self.mensagens.append(mensagem)
+        return _ResultadoOk()
+
+
+class _ResultadoOk:
+    entregue = True
+    falhas: list = []
+
+
+def test_resumo_sem_sobrecoxa_envia_aviso_de_confirmacao(monkeypatch, config):
+    """Sem ocorrência na próxima semana, o resumo AINDA envia um aviso."""
+    hoje = date(2026, 11, 8)
+    cliente = ClienteFalsoPorData(set())  # nenhuma sobrecoxa na próxima semana
+    monkeypatch.setattr(robo, "ClienteRequests", lambda: cliente)
+
+    notif = NotificadorFalso()
+    monkeypatch.setattr(robo, "_montar_notificador", lambda: notif)
+
+    codigo = robo.modo_resumo(config, hoje)
+
+    assert codigo == 0
+    # Enviou a mensagem de confirmação (não a de ocorrências).
+    assert notif.ocorrencias == []
+    assert len(notif.mensagens) == 1
+    corpo = notif.mensagens[0]
+    assert "Nenhum prato monitorado" in corpo
+    assert "sobrecoxa" in corpo.lower()
+
+
+def test_resumo_com_sobrecoxa_envia_ocorrencias(monkeypatch, config):
+    """Com ocorrência na próxima semana, o resumo envia a lista de dias."""
+    hoje = date(2026, 11, 8)
+    cliente = ClienteFalsoPorData({date(2026, 11, 11)})  # quarta da próxima semana
+    monkeypatch.setattr(robo, "ClienteRequests", lambda: cliente)
+
+    notif = NotificadorFalso()
+    monkeypatch.setattr(robo, "_montar_notificador", lambda: notif)
+
+    codigo = robo.modo_resumo(config, hoje)
+
+    assert codigo == 0
+    # Enviou as ocorrências (não a mensagem de "nenhum").
+    assert len(notif.ocorrencias) == 1
+    assert notif.mensagens == []
