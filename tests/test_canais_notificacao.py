@@ -272,15 +272,16 @@ def test_mensagem_falha_coleta_informa_indisponibilidade() -> None:
 
 def test_mensagem_lembrete_um_periodo() -> None:
     msg = mensagem_lembrete_dia("Sobrecoxa", [Refeicao.ALMOCO.value])
-    assert msg == "Hoje tem Sobrecoxa no almoço! Se programe."
+    assert msg == "HOJE É SOBRECOXA NO ALMOÇO PORRAAAAA"
+
+
+def test_mensagem_lembrete_so_jantar() -> None:
+    msg = mensagem_lembrete_dia("Sobrecoxa", [Refeicao.JANTAR.value])
+    assert msg == "HOJE É SOBRECOXA NO JANTA PORRAAAAA"
 
 
 def test_mensagem_lembrete_dois_periodos() -> None:
     msg = mensagem_lembrete_dia(
         "Sobrecoxa", [Refeicao.ALMOCO.value, Refeicao.JANTAR.value]
     )
-    assert "Sobrecoxa" in msg
-    assert Refeicao.ALMOCO.value in msg
-    assert Refeicao.JANTAR.value in msg
-    assert "almoço e jantar" in msg
-    assert "Se programe" in msg
+    assert msg == "HOJE É SOBRECOXA NO ALMOÇO/JANTA PORRAAAAA"

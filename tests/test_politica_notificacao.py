@@ -274,7 +274,7 @@ def test_notificar_lembrete_dia_sucesso_primeira_tentativa() -> None:
     assert len(canal.chamadas) == 1
     # A mensagem enviada é o lembrete do prato.
     _, mensagem = canal.chamadas[0]
-    assert "Sobrecoxa" in mensagem
+    assert "SOBRECOXA" in mensagem
     assert relogio.esperas == []
 
 

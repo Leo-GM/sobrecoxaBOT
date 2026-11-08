@@ -155,31 +155,40 @@ def mensagem_falha_coleta() -> str:
     )
 
 
-def _juntar_periodos(refeicoes: Sequence[str]) -> str:
-    """Junta os períodos em linguagem natural: "almoço", "almoço e jantar"."""
-    periodos = [r for r in refeicoes if r]
-    if not periodos:
-        return ""
-    if len(periodos) == 1:
-        return periodos[0]
-    return f"{', '.join(periodos[:-1])} e {periodos[-1]}"
+def _periodo_lembrete(refeicoes: Sequence[str]) -> str:
+    """Rótulo do período para o lembrete: ALMOÇO, JANTA ou ALMOÇO/JANTA.
+
+    Considera os períodos em que o prato é servido hoje (insensível a
+    caixa/acento) e devolve:
+
+    * só almoço          -> ``"ALMOÇO"``
+    * só jantar          -> ``"JANTA"``
+    * almoço e jantar    -> ``"ALMOÇO/JANTA"``
+    """
+    tem_almoco = any("almo" in r.lower() for r in refeicoes if r)
+    tem_jantar = any("jant" in r.lower() for r in refeicoes if r)
+    if tem_almoco and tem_jantar:
+        return "ALMOÇO/JANTA"
+    if tem_jantar:
+        return "JANTA"
+    if tem_almoco:
+        return "ALMOÇO"
+    return ""
 
 
 def mensagem_lembrete_dia(prato_nome: str, refeicoes: Sequence[str]) -> str:
     """Mensagem de lembrete de que um prato é servido hoje (Opção 1).
 
-    Gera um texto curto avisando que ``prato_nome`` aparece no cardápio de hoje,
-    cobrindo o(s) período(s) (almoço/jantar) em que ele é servido. Com mais de um
-    período, ambos são listados ("almoço e jantar").
+    Cobre os três casos de período em caixa alta, no estilo pedido:
 
-    Exemplos
-    --------
-    >>> mensagem_lembrete_dia("Sobrecoxa", ["almoço"])
-    'Hoje tem Sobrecoxa no almoço! Se programe.'
-    >>> mensagem_lembrete_dia("Sobrecoxa", ["almoço", "jantar"])
-    'Hoje tem Sobrecoxa no almoço e jantar! Se programe.'
+    * só almoço        -> ``"HOJE É SOBRECOXA NO ALMOÇO PORRAAAAA"``
+    * só jantar        -> ``"HOJE É SOBRECOXA NO JANTA PORRAAAAA"``
+    * almoço e jantar  -> ``"HOJE É SOBRECOXA NO ALMOÇO/JANTA PORRAAAAA"``
+
+    O nome do prato entra em caixa alta (ex.: ``sobrecoxa`` -> ``SOBRECOXA``).
     """
-    periodos = _juntar_periodos(refeicoes)
-    if not periodos:
-        return f"Hoje tem {prato_nome} no cardápio! Se programe."
-    return f"Hoje tem {prato_nome} no {periodos}! Se programe."
+    periodo = _periodo_lembrete(refeicoes)
+    prato = prato_nome.upper()
+    if not periodo:
+        return f"HOJE É {prato} PORRAAAAA"
+    return f"HOJE É {prato} NO {periodo} PORRAAAAA"
