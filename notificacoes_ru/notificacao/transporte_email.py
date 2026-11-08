@@ -136,14 +136,22 @@ def transporte_email_do_ambiente() -> Transporte | None:
     Retorna ``None`` se ``BUSCA_SMTP_USER`` ou ``BUSCA_SMTP_PASSWORD`` não
     estiverem definidas. A senha nunca é registrada em log.
     """
-    usuario = os.environ.get("BUSCA_SMTP_USER")
-    senha = os.environ.get("BUSCA_SMTP_PASSWORD")
+    # ``.strip() or None`` trata variável ausente OU vazia da mesma forma. Isso
+    # é importante no GitHub Actions: um secret não cadastrado é injetado como
+    # string vazia (""), não como ausente — então precisamos cair no default
+    # em vez de usar "" (que quebraria o host ou o int(porta)).
+    def _env(nome: str) -> str | None:
+        valor = os.environ.get(nome)
+        return valor.strip() if valor and valor.strip() else None
+
+    usuario = _env("BUSCA_SMTP_USER")
+    senha = _env("BUSCA_SMTP_PASSWORD")
     if not usuario or not senha:
         return None
 
-    host = os.environ.get("BUSCA_SMTP_HOST", HOST_PADRAO)
-    porta = int(os.environ.get("BUSCA_SMTP_PORT", str(PORTA_PADRAO)))
-    remetente = os.environ.get("BUSCA_SMTP_FROM") or usuario
+    host = _env("BUSCA_SMTP_HOST") or HOST_PADRAO
+    porta = int(_env("BUSCA_SMTP_PORT") or PORTA_PADRAO)
+    remetente = _env("BUSCA_SMTP_FROM") or usuario
     # STARTTLS por padrão; porta 465 usa SSL direto.
     usar_tls = porta != 465
 

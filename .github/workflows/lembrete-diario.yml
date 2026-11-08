@@ -30,7 +30,4 @@ jobs:
           TZ: America/Sao_Paulo
           BUSCA_SMTP_USER: ${{ secrets.BUSCA_SMTP_USER }}
           BUSCA_SMTP_PASSWORD: ${{ secrets.BUSCA_SMTP_PASSWORD }}
-          BUSCA_SMTP_HOST: ${{ secrets.BUSCA_SMTP_HOST }}
-          BUSCA_SMTP_PORT: ${{ secrets.BUSCA_SMTP_PORT }}
-          BUSCA_SMTP_FROM: ${{ secrets.BUSCA_SMTP_FROM }}
         run: python robo.py lembrete

@@ -209,3 +209,36 @@ def test_ambiente_porta_465_usa_ssl(monkeypatch):
 
     ssl_cls.assert_called_once_with("smtp.gmail.com", 465, timeout=9.0)
     servidor.starttls.assert_not_called()
+
+
+def test_secrets_vazios_caem_nos_defaults(monkeypatch):
+    """No GitHub Actions, secrets não cadastrados chegam como string vazia ("").
+
+    HOST/PORT/FROM vazios devem cair nos defaults (não quebrar com host vazio
+    nem ``int("")``). Regressão do erro de deploy inicial.
+    """
+    monkeypatch.setenv("BUSCA_SMTP_USER", "u@gmail.com")
+    monkeypatch.setenv("BUSCA_SMTP_PASSWORD", "senha-app")
+    # Opcionais injetados como vazio (comportamento do GitHub Actions).
+    monkeypatch.setenv("BUSCA_SMTP_HOST", "")
+    monkeypatch.setenv("BUSCA_SMTP_PORT", "")
+    monkeypatch.setenv("BUSCA_SMTP_FROM", "")
+
+    transporte = te.transporte_email_do_ambiente()
+    assert transporte is not None  # não deve lançar ValueError no int("")
+
+    servidor = _servidor_mock()
+    with mock.patch.object(te.smtplib, "SMTP", return_value=servidor) as smtp_cls:
+        transporte(_destino("d@exemplo.com"), "oi", timeout=9.0)
+
+    # Caiu nos defaults do Gmail (host e porta), e From = usuário.
+    smtp_cls.assert_called_once_with("smtp.gmail.com", 587, timeout=9.0)
+    (enviado,), _ = servidor.send_message.call_args
+    assert enviado["From"] == "u@gmail.com"
+
+
+def test_user_vazio_retorna_none(monkeypatch):
+    """USER vazio (string "") deve ser tratado como ausente → None."""
+    monkeypatch.setenv("BUSCA_SMTP_USER", "")
+    monkeypatch.setenv("BUSCA_SMTP_PASSWORD", "senha-app")
+    assert te.transporte_email_do_ambiente() is None
