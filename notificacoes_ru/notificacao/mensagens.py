@@ -156,23 +156,23 @@ def mensagem_falha_coleta() -> str:
 
 
 def _periodo_lembrete(refeicoes: Sequence[str]) -> str:
-    """Rótulo do período para o lembrete: ALMOÇO, JANTA ou ALMOÇO/JANTA.
+    """Trecho "preposição + período" do lembrete, com a preposição correta.
 
     Considera os períodos em que o prato é servido hoje (insensível a
     caixa/acento) e devolve:
 
-    * só almoço          -> ``"ALMOÇO"``
-    * só jantar          -> ``"JANTA"``
-    * almoço e jantar    -> ``"ALMOÇO/JANTA"``
+    * só almoço          -> ``"NO ALMOÇO"``
+    * só jantar          -> ``"NA JANTA"``
+    * almoço e jantar    -> ``"NO ALMOÇO/JANTA"``
     """
     tem_almoco = any("almo" in r.lower() for r in refeicoes if r)
     tem_jantar = any("jant" in r.lower() for r in refeicoes if r)
     if tem_almoco and tem_jantar:
-        return "ALMOÇO/JANTA"
+        return "NO ALMOÇO/JANTA"
     if tem_jantar:
-        return "JANTA"
+        return "NA JANTA"
     if tem_almoco:
-        return "ALMOÇO"
+        return "NO ALMOÇO"
     return ""
 
 
@@ -182,7 +182,7 @@ def mensagem_lembrete_dia(prato_nome: str, refeicoes: Sequence[str]) -> str:
     Cobre os três casos de período em caixa alta, no estilo pedido:
 
     * só almoço        -> ``"HOJE É SOBRECOXA NO ALMOÇO PORRAAAAA"``
-    * só jantar        -> ``"HOJE É SOBRECOXA NO JANTA PORRAAAAA"``
+    * só jantar        -> ``"HOJE É SOBRECOXA NA JANTA PORRAAAAA"``
     * almoço e jantar  -> ``"HOJE É SOBRECOXA NO ALMOÇO/JANTA PORRAAAAA"``
 
     O nome do prato entra em caixa alta (ex.: ``sobrecoxa`` -> ``SOBRECOXA``).
@@ -191,4 +191,4 @@ def mensagem_lembrete_dia(prato_nome: str, refeicoes: Sequence[str]) -> str:
     prato = prato_nome.upper()
     if not periodo:
         return f"HOJE É {prato} PORRAAAAA"
-    return f"HOJE É {prato} NO {periodo} PORRAAAAA"
+    return f"HOJE É {prato} {periodo} PORRAAAAA"

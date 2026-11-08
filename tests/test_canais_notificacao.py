@@ -277,7 +277,7 @@ def test_mensagem_lembrete_um_periodo() -> None:
 
 def test_mensagem_lembrete_so_jantar() -> None:
     msg = mensagem_lembrete_dia("Sobrecoxa", [Refeicao.JANTAR.value])
-    assert msg == "HOJE É SOBRECOXA NO JANTA PORRAAAAA"
+    assert msg == "HOJE É SOBRECOXA NA JANTA PORRAAAAA"
 
 
 def test_mensagem_lembrete_dois_periodos() -> None:
